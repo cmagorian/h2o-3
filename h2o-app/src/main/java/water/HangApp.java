@@ -12,7 +12,7 @@ public class HangApp extends H2OStarter {
         start(args, System.getProperty("user.dir"));
 
         // wait for cluster of size 2
-        H2O.waitForCloudSize(2, 2000);
+        H2O.waitForCloudSize(2, 10000);
 
         System.out.println("Before");
         // Renumber to handle dup names
