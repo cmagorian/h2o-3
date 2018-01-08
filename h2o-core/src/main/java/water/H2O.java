@@ -1683,8 +1683,13 @@ final public class H2O {
   public static void waitForCloudSize(int x, long ms) {
     long start = System.currentTimeMillis();
     while( System.currentTimeMillis() - start < ms ) {
-      if( CLOUD.size() >= x && Paxos._commonKnowledge )
-        break;
+      if( CLOUD.size() >= x && Paxos._commonKnowledge) { // if the cloud is of the correct size
+        if(H2O.ARGS.client && H2O.SELF.propagated){ // in case of client, the client needs to be known everywhere
+          break;
+        } else if(!H2O.ARGS.client) {
+          break;
+        }
+      }
       try { Thread.sleep(100); } catch( InterruptedException ignore ) { }
     }
     if( H2O.CLOUD.size() < x )
@@ -2106,6 +2111,7 @@ final public class H2O {
    * @return true if node was already in the multicast list.
    */
   public static boolean addNodeToFlatfile(H2ONode node) {
+    Log.info("Adding " + node + " to flatfile");
     assert isFlatfileEnabled() : "Trying to use flatfile, but flatfile is not enabled!";
     return STATIC_H2OS.add(node);
   }

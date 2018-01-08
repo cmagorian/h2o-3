@@ -1,5 +1,6 @@
 package water.init;
 
+import com.google.common.collect.Sets;
 import water.H2O;
 import water.H2ONode;
 import water.JettyHTTPD;
@@ -155,12 +156,21 @@ public class NetworkInit {
       }
     }
 
-    // Read a flatfile of allowed nodes
-    if (embeddedConfigFlatfile != null)
-      H2O.setFlatfile(parseFlatFileFromString(embeddedConfigFlatfile));
-    else 
-      H2O.setFlatfile(parseFlatFile(H2O.ARGS.flatfile));
-
+    // Read a flatfile of allowed nodes. In case of client, always use just a single node.
+    if (embeddedConfigFlatfile != null) {
+      if (H2O.ARGS.client) {
+        H2O.setFlatfile(Sets.newHashSet(parseFlatFileFromString(embeddedConfigFlatfile).iterator().next()));
+      } else {
+        H2O.setFlatfile(parseFlatFileFromString(embeddedConfigFlatfile));
+      }
+    }
+    else {
+      if (H2O.ARGS.client){
+        H2O.setFlatfile(Sets.newHashSet(parseFlatFile(H2O.ARGS.flatfile).iterator().next()));
+      } else {
+        H2O.setFlatfile(parseFlatFile(H2O.ARGS.flatfile));
+      }
+    }
     // All the machines has to agree on the same multicast address (i.e., multicast group)
     // Hence use the cloud name to generate multicast address
     // Note: if necessary we should permit configuration of multicast address manually

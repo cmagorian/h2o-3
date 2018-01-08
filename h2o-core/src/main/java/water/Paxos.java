@@ -1,6 +1,7 @@
 package water;
 
 import java.util.Arrays;
+
 import water.H2ONode.H2Okey;
 import water.init.JarHash;
 import water.nbhm.NonBlockingHashMap;
@@ -32,6 +33,25 @@ public abstract class Paxos {
   public static volatile boolean _cloudLocked = false;
 
   public static final NonBlockingHashMap<H2Okey,H2ONode> PROPOSED = new NonBlockingHashMap<>();
+
+  /**
+   * Helper MR task used to detect clientDisconnectedConsensus on the timeout we last heard from the watchdog client
+   */
+  private static class DistributeClientTask extends MRTask<DistributeClientTask> {
+    private H2ONode clientNode;
+    DistributeClientTask(H2ONode clientNode) {
+      super(H2O.MIN_HI_PRIORITY);
+      this.clientNode = clientNode;
+    }
+
+    @Override
+    protected void setupLocal() {
+      Log.info("Executing on " + H2O.SELF);
+      H2O.addNodeToFlatfile(clientNode);
+      H2O.reportClient(clientNode);
+    }
+  }
+
 
   // ---
   // This is a packet announcing what Cloud this Node thinks is the current
@@ -66,18 +86,15 @@ public abstract class Paxos {
 
     // I am not client but received client heartbeat in flatfile mode.
     // Means that somebody is trying to connect to this cloud.
-    // => update list of static hosts (it needs clean up)
+    // => update list of static hosts
     if (!H2O.ARGS.client && H2O.isFlatfileEnabled()
-         && h2o._heartbeat._client
-         && !H2O.isNodeInFlatfile(h2o)) {
-      // Extend static list of nodes to multicast to propagate information to client
-      H2O.addNodeToFlatfile(h2o);
-      H2O.reportClient(h2o);
-      // A new client `h2o` is connected so we broadcast it around to other nodes
-      // Note: this could cause a temporary flood of messages since the other
-      // nodes will later inform about the connected client as well.
-      // Note: It would be helpful to have a control over flatfile-based multicast to inject a small wait.
-      UDPClientEvent.ClientEvent.Type.CONNECT.broadcast(h2o);
+            && h2o._heartbeat._client
+            && !H2O.isNodeInFlatfile(h2o)) {
+      // A new client `h2o` was reported to this node so we propagate this information to all other nodes as well (to this
+      // node as well). H2O client is always reported in case of flatfile to just a single H2O node so we can be sure
+      // there are no concurrent messages like this
+      new DistributeClientTask(h2o).doAllNodes();
+      UDPClientEvent.ClientEvent.Type.CONFIRM_CONNECT.confirm(h2o, h2o);
     } else if (H2O.ARGS.client
                && H2O.isFlatfileEnabled()
                && !H2O.isNodeInFlatfile(h2o)) {
@@ -157,6 +174,9 @@ public abstract class Paxos {
     if( _cloudLocked ) return; // Fast-path cutout
     lockCloud_impl(reason);
   }
+
+
+
   static private void lockCloud_impl(Object reason) {
     // Any fast-path cutouts must happen en route to here.
     Log.info("Locking cloud to new members, because "+reason.toString());
@@ -167,6 +187,7 @@ public abstract class Paxos {
       // remove nodes which are not in the cluster (e.g. nodes from flat-file which are not actually used)
       if(H2O.isFlatfileEnabled()){
         for(H2ONode n: H2O.getFlatfile()){
+          Log.info("Locking cloud with node: "  + n);
           if(!n._heartbeat._client && !PROPOSED.containsKey(n._key)){
             Log.info("Flatile::" + n._key + " not active in this cloud. Removing it from the list.");
             n.stopSendThread();

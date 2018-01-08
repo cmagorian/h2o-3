@@ -38,7 +38,7 @@ public final class H2ONode extends Iced<H2ONode> implements Comparable {
   transient public long _last_heard_from; // Time in msec since we last heard from this Node
   transient public volatile HeartBeat _heartbeat;  // My health info.  Changes 1/sec.
   transient public int _tcp_readers;               // Count of started TCP reader threads
-
+  transient public boolean propagated = false;
   public boolean _removed_from_cloud;
   public void stopSendThread(){
     if(_sendThread != null) {
