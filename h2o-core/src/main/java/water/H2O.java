@@ -1688,7 +1688,9 @@ final public class H2O {
       }
       try { Thread.sleep(100); } catch( InterruptedException ignore ) { }
     }
-
+    for (H2ONode n : H2O.getFlatfile()) {
+      Log.info("Flatfile: " + n);
+    }
     if( H2O.CLOUD.size() < x ){
       throw new RuntimeException("Cloud size under " + x);
     }
