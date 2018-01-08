@@ -39,6 +39,7 @@ public abstract class Paxos {
    */
   private static class DistributeClientTask extends MRTask<DistributeClientTask> {
     private H2ONode clientNode;
+
     DistributeClientTask(H2ONode clientNode) {
       super(H2O.MIN_HI_PRIORITY);
       this.clientNode = clientNode;
@@ -47,8 +48,13 @@ public abstract class Paxos {
     @Override
     protected void setupLocal() {
       Log.info("Executing on " + H2O.SELF);
-      H2O.addNodeToFlatfile(clientNode);
-      H2O.reportClient(clientNode);
+      while(!H2O.getClients().contains(clientNode)){
+        try {
+          Thread.sleep(100);
+        }catch (InterruptedException e){
+          // ignore
+        }
+      }
     }
   }
 
@@ -90,12 +96,20 @@ public abstract class Paxos {
     if (!H2O.ARGS.client && H2O.isFlatfileEnabled()
             && h2o._heartbeat._client
             && !H2O.isNodeInFlatfile(h2o)) {
+
       // A new client `h2o` was reported to this node so we propagate this information to all other nodes as well (to this
       // node as well). H2O client is always reported in case of flatfile to just a single H2O node so we can be sure
       // there are no concurrent messages like this
+      // Add client to me
+      H2O.addNodeToFlatfile(h2o);
+      H2O.reportClient(h2o);
+      // Broadcast the client to the rest of the nodes
+      UDPClientEvent.ClientEvent.Type.CONFIRM_CONNECT.broadcast(h2o);
+      // Wait until all nodes has the client
       new DistributeClientTask(h2o).doAllNodes();
+      // Confirm to the client
       UDPClientEvent.ClientEvent.Type.CONFIRM_CONNECT.confirm(h2o);
-    } else if (H2O.ARGS.client
+      } else if (H2O.ARGS.client
                && H2O.isFlatfileEnabled()
                && !H2O.isNodeInFlatfile(h2o)) {
       // This node is a client and using a flatfile to figure out a topology of the cluster.
