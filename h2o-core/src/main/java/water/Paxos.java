@@ -167,6 +167,9 @@ public abstract class Paxos {
     Paxos.class.notifyAll(); // Also, wake up a worker thread stuck in DKV.put
     Paxos.print("Announcing new Cloud Membership: ", H2O.CLOUD._memary);
     Log.info("Cloud of size ", H2O.CLOUD.size(), " formed ", H2O.CLOUD.toString());
+    for(H2ONode n : H2O.getFlatfile()){
+      Log.info("Flatfile: " + n);
+    }
     H2O.notifyAboutCloudSize(H2O.SELF_ADDRESS, H2O.API_PORT, H2O.CLOUD.size());
     return 0;
   }
