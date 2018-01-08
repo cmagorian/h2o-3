@@ -115,7 +115,7 @@ public abstract class Paxos {
       // provided by a host we received heartbeat from.
       // That means that the host is in our flatfile already or it was notified about this client node
       // via a node which is already in the flatfile)
-      //H2O.addNodeToFlatfile(h2o);
+      return 0;
     }
 
     // Never heard of this dude?  See if we want to kill him off for being cloud-locked
