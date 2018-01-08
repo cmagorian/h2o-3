@@ -79,6 +79,7 @@ public class UDPClientEvent extends UDP {
       }
 
       public void confirm(H2ONode node, H2ONode clientNode){
+        Log.info("Confirming that client " + node + " has been propagated everywhere");
         ClientEvent ce = new ClientEvent(this, clientNode);
         ce.write(new AutoBuffer(node, udp.client_event._prior).putUdp(udp.client_event)).close();
       }
