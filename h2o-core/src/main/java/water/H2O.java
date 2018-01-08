@@ -1680,9 +1680,9 @@ final public class H2O {
     return true;
   }
 
-  public static void waitForCloudSize(int x, long cloudFormationMs) {
-    long startCloudFormation = System.currentTimeMillis();
-    while( System.currentTimeMillis() - startCloudFormation < cloudFormationMs ) {
+  public static void waitForCloudSize(int x, long ms) {
+    long start = System.currentTimeMillis();
+    while( System.currentTimeMillis() - start < ms ) {
       if( CLOUD.size() >= x && Paxos._commonKnowledge) {
         break;
       }
