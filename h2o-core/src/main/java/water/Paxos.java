@@ -47,6 +47,8 @@ public abstract class Paxos {
 
     @Override
     protected void setupLocal() {
+      H2O.addNodeToFlatfile(clientNode);
+      H2O.reportClient(clientNode);
       Log.info("Executing on " + H2O.SELF);
       while(!H2O.isNodeInFlatfile(clientNode)){
         try {
@@ -56,6 +58,7 @@ public abstract class Paxos {
           // ignore
         }
       }
+      Log.info("Client ready on " + H2O.SELF);
     }
   }
 
@@ -101,12 +104,6 @@ public abstract class Paxos {
       // A new client `h2o` was reported to this node so we propagate this information to all other nodes as well (to this
       // node as well). H2O client is always reported in case of flatfile to just a single H2O node so we can be sure
       // there are no concurrent messages like this
-      // Add client to me
-      H2O.addNodeToFlatfile(h2o);
-      H2O.reportClient(h2o);
-      // Broadcast the client to the rest of the nodes
-      UDPClientEvent.ClientEvent.Type.CONNECT.broadcast(h2o);
-      // Wait until all nodes has the client
       new DistributeClientTask(h2o).doAllNodes();
       // Confirm to the client
       UDPClientEvent.ClientEvent.Type.CONFIRM_CONNECT.confirm(h2o);
