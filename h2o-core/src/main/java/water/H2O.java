@@ -2158,7 +2158,11 @@ final public class H2O {
    * @return  set of nodes
    */
   public static HashSet<H2ONode> getFlatfile() {
-    return (HashSet<H2ONode>) STATIC_H2OS.clone();
+    if(STATIC_H2OS == null){
+      return new HashSet<H2ONode>();
+    }else {
+      return (HashSet<H2ONode>) STATIC_H2OS.clone();
+    }
   }
 
   public static H2ONode reportClient(H2ONode client){
