@@ -104,7 +104,7 @@ public abstract class Paxos {
       H2O.addNodeToFlatfile(h2o);
       H2O.reportClient(h2o);
       // Broadcast the client to the rest of the nodes
-      UDPClientEvent.ClientEvent.Type.CONFIRM_CONNECT.broadcast(h2o);
+      UDPClientEvent.ClientEvent.Type.CONNECT.broadcast(h2o);
       // Wait until all nodes has the client
       new DistributeClientTask(h2o).doAllNodes();
       // Confirm to the client
