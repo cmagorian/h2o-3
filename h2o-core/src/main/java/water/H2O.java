@@ -1680,7 +1680,7 @@ final public class H2O {
     return true;
   }
 
-  public static void waitForCloudSize(int x, long cloudFormationMs, long clientPropagationMs) {
+  public static void waitForCloudSize(int x, long cloudFormationMs) {
     long startCloudFormation = System.currentTimeMillis();
     while( System.currentTimeMillis() - startCloudFormation < cloudFormationMs ) {
       if( CLOUD.size() >= x && Paxos._commonKnowledge) {
@@ -1691,20 +1691,6 @@ final public class H2O {
 
     if( H2O.CLOUD.size() < x ){
       throw new RuntimeException("Cloud size under " + x);
-    }
-
-    if(H2O.ARGS.client){
-      long clientPropagation = System.currentTimeMillis();
-      while(System.currentTimeMillis() - clientPropagation < clientPropagationMs){
-        if(H2O.SELF.propagated) {
-          break;
-        }
-        try { Thread.sleep(100); } catch( InterruptedException ignore ) { }
-      }
-    }
-
-    if( !H2O.SELF.propagated){
-      throw new RuntimeException("Client couldn't be propagated to all nodes in: " + clientPropagationMs + "ms");
     }
 
   }

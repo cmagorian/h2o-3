@@ -60,8 +60,7 @@ public class UDPClientEvent extends UDP {
         case CONFIRM_CONNECT:
           if(H2O.ARGS.client){
             Log.info("Got confirmation from the node who client first contacted");
-            H2O.SELF.propagated = true;
-            for(int i=0; i<ce.flatfile.length; i++){
+            for(int i = 0; i<ce.flatfile.length; i++){
               H2O.addNodeToFlatfile(ce.flatfile[i]);
             }
           }
