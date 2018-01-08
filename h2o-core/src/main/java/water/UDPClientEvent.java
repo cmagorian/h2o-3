@@ -1,6 +1,11 @@
 package water;
 
+import water.init.NetworkInit;
 import water.util.Log;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Iterator;
 
 /**
  * A simple message which informs cluster about a new client
@@ -56,6 +61,9 @@ public class UDPClientEvent extends UDP {
           if(H2O.ARGS.client){
             Log.info("Got confirmation from the node who client first contacted");
             H2O.SELF.propagated = true;
+            for(int i=0; i<ce.flatfile.length; i++){
+              H2O.addNodeToFlatfile(ce.flatfile[i]);
+            }
           }
           break;
         default:
@@ -78,21 +86,32 @@ public class UDPClientEvent extends UDP {
         ce.write(new AutoBuffer(H2O.SELF, udp.client_event._prior).putUdp(udp.client_event)).close();
       }
 
-      public void confirm(H2ONode node, H2ONode clientNode){
-        Log.info("Confirming that client " + node + " has been propagated everywhere");
-        ClientEvent ce = new ClientEvent(this, clientNode);
-        ce.write(new AutoBuffer(node, udp.client_event._prior).putUdp(udp.client_event)).close();
+      public void confirm(H2ONode clientNode){
+        Log.info("Confirming that client " + clientNode + " has been propagated everywhere");
+
+        ClientEvent ce = new ClientEvent(this, clientNode,
+                H2O.getFlatfile().toArray(new H2ONode[H2O.getFlatfile().size()]));
+
+        ce.write(new AutoBuffer(clientNode, udp.client_event._prior).putUdp(udp.client_event)).close();
       }
     }
+
     // Type of client event
     public Type type;
     // Client
     public H2ONode clientNode;
+    public H2ONode[] flatfile;
 
     public ClientEvent() {}
     public ClientEvent(Type type, H2ONode clientNode) {
       this.type = type;
       this.clientNode = clientNode;
+    }
+
+    public ClientEvent(Type type, H2ONode clientNode, H2ONode[] flatfile) {
+      this.type = type;
+      this.clientNode = clientNode;
+      this.flatfile = flatfile;
     }
   }
 }

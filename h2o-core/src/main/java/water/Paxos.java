@@ -94,7 +94,7 @@ public abstract class Paxos {
       // node as well). H2O client is always reported in case of flatfile to just a single H2O node so we can be sure
       // there are no concurrent messages like this
       new DistributeClientTask(h2o).doAllNodes();
-      UDPClientEvent.ClientEvent.Type.CONFIRM_CONNECT.confirm(h2o, h2o);
+      UDPClientEvent.ClientEvent.Type.CONFIRM_CONNECT.confirm(h2o);
     } else if (H2O.ARGS.client
                && H2O.isFlatfileEnabled()
                && !H2O.isNodeInFlatfile(h2o)) {
@@ -103,7 +103,7 @@ public abstract class Paxos {
       // provided by a host we received heartbeat from.
       // That means that the host is in our flatfile already or it was notified about this client node
       // via a node which is already in the flatfile)
-      H2O.addNodeToFlatfile(h2o);
+      //H2O.addNodeToFlatfile(h2o);
     }
 
     // Never heard of this dude?  See if we want to kill him off for being cloud-locked
