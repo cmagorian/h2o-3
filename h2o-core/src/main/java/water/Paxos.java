@@ -48,7 +48,7 @@ public abstract class Paxos {
     @Override
     protected void setupLocal() {
       Log.info("Executing on " + H2O.SELF);
-      while(H2O.getClientByIPPort(clientNode.getIpPortString()) != null){
+      while(H2O.getClientByIPPort(clientNode.getIpPortString()) == null){
         try {
           Log.info("Waiting " + clientNode);
           Thread.sleep(100);
