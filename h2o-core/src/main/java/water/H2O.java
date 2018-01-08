@@ -1397,7 +1397,7 @@ final public class H2O {
 
   /* A static list of acceptable Cloud members passed via -flatfile option.
    * It is updated also when a new client appears. */
-  private static HashSet<H2ONode> STATIC_H2OS = null;
+  private static HashSet<H2ONode> STATIC_H2OS = new HashSet<>();
 
   /* List of all clients that ever connected to this cloud. Keys are IP:PORT of these clients */
   private static Map<String, H2ONode> CLIENTS_MAP = new ConcurrentHashMap<>();
